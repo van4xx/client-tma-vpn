@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import WebApp from '@twa-dev/sdk';
+import { createPayment, validatePayment } from '../api';
 
 interface Plan {
   id: string;
@@ -15,8 +16,18 @@ interface PaymentScreenProps {
 }
 
 const PaymentScreen: React.FC<PaymentScreenProps> = ({ plan, onPaymentComplete }) => {
-  const [paymentLink, setPaymentLink] = useState<string>('https://securepayments.tinkoff.ru/SSBH5kiG');
+  const [paymentId, setPaymentId] = useState<string>('');
+  const [paymentLink, setPaymentLink] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
   const [countdown, setCountdown] = useState<number>(900); // 15 minutes in seconds
+  
+  useEffect(() => {
+    // Create payment when component mounts
+    if (plan) {
+      createNewPayment();
+    }
+  }, [plan]);
   
   useEffect(() => {
     // Start countdown timer
@@ -35,23 +46,61 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({ plan, onPaymentComplete }
     };
   }, []);
   
+  const createNewPayment = async () => {
+    if (!plan) return;
+    
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // In a real app, we would use the actual tariffId that the plan belongs to
+      const tariffId = 'blackrock'; // This would be passed from the parent component
+      
+      const paymentData = await createPayment(tariffId, plan.id);
+      setPaymentId(paymentData.paymentId);
+      setPaymentLink(paymentData.paymentUrl);
+    } catch (err) {
+      setError('Failed to create payment. Please try again.');
+      console.error('Payment creation error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
   };
   
-  const handlePayClick = () => {
-    // In a real app, this would integrate with Telegram Payments
-    // For demo, we'll just simulate a payment
+  const handlePayClick = async () => {
+    if (!paymentId) return;
     
-    // The real implementation would use Telegram's WebApp.openInvoice
-    // Or redirect to a payment processing URL
+    setIsLoading(true);
     
-    // For demo purposes, let's simulate a delayed payment
-    setTimeout(() => {
-      onPaymentComplete();
-    }, 1500);
+    try {
+      // In a real app, this would redirect to the payment gateway
+      // For demo purposes, we'll simulate a payment check
+      setTimeout(async () => {
+        try {
+          const result = await validatePayment(paymentId);
+          
+          if (result.success) {
+            onPaymentComplete();
+          } else {
+            setError('Payment validation failed. Please try again.');
+          }
+        } catch (err) {
+          setError('Failed to validate payment. Please try again.');
+          console.error('Payment validation error:', err);
+        } finally {
+          setIsLoading(false);
+        }
+      }, 1500);
+    } catch (err) {
+      setError('Payment processing failed. Please try again.');
+      setIsLoading(false);
+    }
   };
   
   const copyToClipboard = () => {
@@ -94,6 +143,20 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({ plan, onPaymentComplete }
         <p style={{ textAlign: 'center', color: '#999', marginBottom: '20px' }}>
           Откройте ссылку на оплату прямо в телеграм-браузере или скопируйте и откройте в браузере телефона
         </p>
+        
+        {error && (
+          <div style={{ 
+            padding: '10px', 
+            backgroundColor: 'rgba(244, 67, 54, 0.1)', 
+            color: '#f44336',
+            borderRadius: '8px',
+            marginBottom: '15px',
+            width: '100%',
+            textAlign: 'center'
+          }}>
+            {error}
+          </div>
+        )}
         
         <div style={{ width: '100%', marginBottom: '20px' }}>
           <h3 style={{ textAlign: 'center', marginBottom: '5px' }}>Время жизни сессии на оплату</h3>
@@ -149,8 +212,12 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({ plan, onPaymentComplete }
           </div>
         </div>
           
-        <button className="button" onClick={handlePayClick}>
-          Оплатить
+        <button 
+          className="button" 
+          onClick={handlePayClick}
+          disabled={isLoading || !paymentId}
+        >
+          {isLoading ? 'Обработка...' : 'Оплатить'}
         </button>
       </div>
     </div>

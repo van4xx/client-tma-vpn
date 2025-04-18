@@ -100,8 +100,22 @@ const AccessKeyScreen: React.FC<AccessKeyScreenProps> = ({ accessKey, onHome }) 
             Добавьте ключ в программу
           </h3>
           <p style={{ color: '#999', fontSize: '14px', marginBottom: '10px' }}>
-            У вас на устройстве должна быть установлена программа v2rayTun
+            У вас на устройстве должна быть установлена программа v2rayTun или другой клиент, поддерживающий протокол VLESS
           </p>
+          
+          <div className="card" style={{ 
+            padding: '15px', 
+            marginBottom: '20px'
+          }}>
+            <h4 style={{ marginBottom: '10px' }}>О формате ключа</h4>
+            <p style={{ color: '#999', fontSize: '13px', lineHeight: '1.5', marginBottom: '10px' }}>
+              Ваш ключ использует протокол VLESS, который обеспечивает высокую скорость и безопасность соединения. 
+              Формат ключа: <code style={{ backgroundColor: 'rgba(255,255,255,0.1)', padding: '2px 4px', borderRadius: '3px' }}>vless://UUID</code>
+            </p>
+            <p style={{ color: '#999', fontSize: '13px', lineHeight: '1.5' }}>
+              Для использования ключа, просто вставьте его в поле импорта вашего VPN клиента или отсканируйте QR-код, если он поддерживается.
+            </p>
+          </div>
           
           <div className="card" style={{ 
             display: 'flex', 
@@ -129,7 +143,7 @@ const AccessKeyScreen: React.FC<AccessKeyScreenProps> = ({ accessKey, onHome }) 
             </div>
             <div>
               <h4 style={{ marginBottom: '5px' }}>
-                Скачайте приложение для ключа.
+                Скачайте приложение для ключа
               </h4>
               <h3 style={{ color: '#2196f3' }}>
                 Центр загрузки приложений

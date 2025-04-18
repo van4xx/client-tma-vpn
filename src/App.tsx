@@ -32,26 +32,6 @@ const App: React.FC = () => {
   const [selectedPlan, setSelectedPlan] = useState<SelectedPlan | null>(null);
   const [accessKey, setAccessKey] = useState<string>('');
   
-  // Set up back button functionality
-  React.useEffect(() => {
-    WebApp.BackButton.onClick(() => {
-      handleBackNavigation();
-    });
-    
-    return () => {
-      WebApp.BackButton.offClick();
-    };
-  }, [currentPage]);
-  
-  // Show or hide back button based on current page
-  React.useEffect(() => {
-    if (currentPage === 'splash') {
-      WebApp.BackButton.hide();
-    } else {
-      WebApp.BackButton.show();
-    }
-  }, [currentPage]);
-  
   // Handle back button navigation logic
   const handleBackNavigation = () => {
     switch (currentPage) {
@@ -80,6 +60,24 @@ const App: React.FC = () => {
         setCurrentPage('splash');
     }
   };
+  
+  // Set up back button functionality
+  React.useEffect(() => {
+    WebApp.BackButton.onClick(handleBackNavigation);
+    
+    return () => {
+      WebApp.BackButton.offClick(handleBackNavigation);
+    };
+  }, [currentPage]);
+  
+  // Show or hide back button based on current page
+  React.useEffect(() => {
+    if (currentPage === 'splash') {
+      WebApp.BackButton.hide();
+    } else {
+      WebApp.BackButton.show();
+    }
+  }, [currentPage]);
   
   // Splash screen timer
   React.useEffect(() => {
